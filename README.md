@@ -4,7 +4,25 @@ The public repository includes a local-first browser workspace plus an experimen
 
 ## Build the Android APK in Termux
 
-The earlier Android Gradle Plugin error with `AAPT2 ... linux` is a host-binary mismatch: the downloaded AAPT2 executable targets desktop Linux/glibc, while Termux uses Android/Bionic. The build helper uses Termux's native `aapt2` and checks Java and SDK prerequisites. From the repository root:
+The Android app supports a user-confirmed APK update flow. Android does not allow an app to hot-patch its running code or silently replace itself. Build a new APK with the **same signing key** and a higher `versionCode`, install it through Android's package installer, and Android updates the installed app while preserving app data. The process restarts as part of installation. Disconnect the VPN first.
+
+To update an app built and installed from this same Termux environment, pull the latest code and build with the helper:
+
+```sh
+cd ~/trmux-local-workbench
+git pull --ff-only
+./android/build-termux.sh
+```
+
+Keep the same Termux user and `~/.android/debug.keystore`; losing/replacing that debug key means Android will reject the update signature. Then copy the APK to Downloads and open it to upgrade manually:
+
+```sh
+cp android/app/build/outputs/apk/debug/app-debug.apk "$HOME/storage/downloads/"
+```
+
+Alternatively, use **Install app update from APK** in Trmux, select the built APK, and confirm the Android installer prompt. Android may ask to allow this app to install unknown apps. The installer validates package ID, signature, and version; updates must use package `org.trmux.app`, the same signing certificate, and a higher version code. Never install an APK from an untrusted source.
+
+Termux build prerequisites (once): OpenJDK 21, Gradle, native Termux `aapt2`, and Android SDK platform 35/build-tools 34.0.0. If needed:
 
 ```sh
 pkg install openjdk-21 gradle aapt2
@@ -17,14 +35,6 @@ export ANDROID_SDK_ROOT="$ANDROID_HOME"
 chmod +x android/build-termux.sh
 ./android/build-termux.sh
 ```
-
-The script writes `android.aapt2FromMavenOverride` to your user-level `~/.gradle/gradle.properties`, keeping Termux-specific paths out of the shared project configuration. If needed, set `ANDROID_HOME` to your actual SDK location. After a successful build, it prints the APK path. Copy it to shared Downloads only after verifying it exists:
-
-```sh
-cp android/app/build/outputs/apk/debug/app-debug.apk "$HOME/storage/downloads/"
-```
-
-Then use Android's file manager to install it, allowing installs from that source if Android prompts. If native AAPT2 itself fails, use Android Studio on a desktop or a configured Android CI runner; Termux binary compatibility varies. `local.properties` is local-only and must not be committed.
 
 ## Native Android VPN app (WireGuard)
 
