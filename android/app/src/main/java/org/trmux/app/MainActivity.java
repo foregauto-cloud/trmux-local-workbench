@@ -5,12 +5,10 @@ import android.content.Intent;
 import android.net.VpnService;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.wireguard.android.backend.Backend;
 import com.wireguard.android.backend.GoBackend;
@@ -18,6 +16,7 @@ import com.wireguard.android.backend.Tunnel;
 import com.wireguard.config.Config;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
@@ -33,11 +32,10 @@ public final class MainActivity extends Activity {
     private Backend backend;
     private final Tunnel tunnel = new Tunnel() {
         @Override public String getName() { return TUNNEL_NAME; }
-        @Override public void onStateChange(State state) { runOnUiThread(() -> showStatus("Tunnel " + state.name().toLowerCase())); }
+        @Override public void onStateChange(State state) { showStatus("Tunnel " + state.name().toLowerCase()); }
     };
     private TextView status;
     private TextView profileName;
-    private Button connectButton;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -89,7 +87,7 @@ public final class MainActivity extends Activity {
         importButton.setOnClickListener(v -> chooseConfig());
         root.addView(importButton, new LinearLayout.LayoutParams(-1, -2));
 
-        connectButton = new Button(this);
+        Button connectButton = new Button(this);
         connectButton.setText("Connect");
         connectButton.setOnClickListener(v -> requestConnect());
         root.addView(connectButton, new LinearLayout.LayoutParams(-1, -2));
@@ -124,10 +122,9 @@ public final class MainActivity extends Activity {
         if (requestCode == REQUEST_IMPORT) {
             try (InputStream in = getContentResolver().openInputStream(data.getData())) {
                 if (in == null) throw new IllegalArgumentException("Could not read selected configuration.");
-                byte[] bytes = in.readNBytes(65537);
-                if (bytes.length > 65536) throw new IllegalArgumentException("Config exceeds 64 KiB.");
+                byte[] bytes = readBounded(in, 65536);
                 String configText = new String(bytes, StandardCharsets.UTF_8);
-                Config.parse(new ByteArrayInputStream(bytes)); // Validate before storing secrets.
+                Config.parse(new ByteArrayInputStream(bytes));
                 profileStore.save(configText);
                 showProfile();
                 showStatus("Valid WireGuard configuration imported and encrypted on device.");
@@ -136,6 +133,19 @@ public final class MainActivity extends Activity {
             if (resultCode == RESULT_OK) connect();
             else showStatus("Android VPN permission was not granted; tunnel remains disconnected.");
         }
+    }
+
+    private static byte[] readBounded(InputStream input, int maxBytes) throws Exception {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int total = 0;
+        int count;
+        while ((count = input.read(buffer)) != -1) {
+            total += count;
+            if (total > maxBytes) throw new IllegalArgumentException("Config exceeds 64 KiB.");
+            output.write(buffer, 0, count);
+        }
+        return output.toByteArray();
     }
 
     private void requestConnect() {
@@ -187,7 +197,6 @@ public final class MainActivity extends Activity {
     private String safeMessage(Exception e) {
         String message = e.getMessage();
         if (message == null || message.isBlank()) return e.getClass().getSimpleName();
-        // Do not surface potentially sensitive configuration details from backend exceptions.
         return message.length() > 160 ? message.substring(0, 160) : message;
     }
 
