@@ -1,19 +1,23 @@
-# Trmux Local Workbench
+# Trmux Android Workbench
 
-Local-first coding workbench with a browser editor, defensive log triage, VPN/proxy profile drafts, and an optional chat interface backed by a model installed in local Ollama.
+The Android APK combines the native WireGuard client with native workbench tools: a local document editor, defensive log indicator review, and optional chat with Ollama listening on this same device. The workbench does not wrap or launch a browser app, and does not execute shell commands or modify files without the Android document picker. VPN configuration is separate and always subject to Android's VPN consent dialog.
 
-## Run
-
-Requires Node.js 18+:
+## Build and install in Termux
 
 ```sh
-npm start
+cd ~/trmux-local-workbench
+git pull --ff-only
+./android/build-termux.sh
+cp android/app/build/outputs/apk/debug/app-debug.apk "$HOME/storage/downloads/"
 ```
 
-Open http://127.0.0.1:3000. The server binds to loopback. Workspace files are read and written in the configured local workspace directory. The chat assistant talks to Ollama at `127.0.0.1:11434`; it does not use a hosted LLM. Install and start Ollama and pull a model before chatting, then use **Refresh** in the assistant panel. Optionally select “Include current open file as context” before sending. Chat messages are sent only to that local Ollama service; treat workspace text as sensitive on the local machine as usual.
+Open the APK from Downloads and confirm Android's installer. This is version 0.4.0 (version code 4); updating requires the same package and signing key. Keep the same Termux user's debug keystore.
 
-The UI is a workspace, not a general operating system: it does not execute shell commands, manage arbitrary apps, or change host network settings. The browser network page saves draft endpoint details only. Actual VPN connections require the native Android WireGuard app and an authorized profile. Analyzer output is heuristic and requires human review.
+## App features and boundaries
 
-## Android
+- **VPN:** Import a WireGuard profile you are authorized to use. The VPN screen shows configured peers/routes and traffic counters. It is not a mesh coordinator and cannot configure forwarding on remote devices.
+- **Editor:** Open and save text files through Android's Storage Access Framework. Files are not automatically uploaded or run.
+- **Log review:** Heuristics are local, bounded, and not a substitute for incident response.
+- **Local AI:** Install/start Ollama on the same Android device, make it listen on `127.0.0.1:11434`, then use Find local models. Cleartext networking is denied generally and allowed only to loopback for this local Ollama connection. No hosted LLM fallback exists.
 
-See `android/` for the experimental native WireGuard client and Termux build helper. It can connect to peers/routes contained in a user-imported profile after explicit Android VPN consent; it does not create or provision a mesh.
+The app has not been built or device-tested in this change. Verify the Gradle build, document picker, Ollama requests, VPN approval/denial, and actual routes/DNS on a test device before relying on it.
