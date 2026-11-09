@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10131b"><title>Trmux Workbench</title><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Trmux home"><span class="brand-mark">T</span><span>TRMUX <small>LOCAL WORKBENCH</small></span></a>
+    <div class="top-status"><span class="status-dot"></span><span id="runtime-status">LOCAL · CONNECTING</span><span class="divider"></span><span id="workspace-label">WORKSPACE</span></div>
+    <button id="refresh-files" class="icon-button" title="Refresh files" aria-label="Refresh files">↻</button>
+  </header>
+  <main class="app-grid">
+    <aside class="sidebar panel">
+      <div class="side-head"><span>EXPLORER</span><button id="new-file" class="text-button">＋ FILE</button></div>
+      <div id="file-list" class="file-list"><p class="muted pad">Loading workspace…</p></div>
+      <section class="side-tools"><div class="side-head"><span>DEFENSIVE TOOLS</span></div><button class="tool-link selected" data-view="editor">⌘　Code workspace</button><button class="tool-link" data-view="analyzer">◈　Log triage</button><div class="safety-note"><span>●</span> LOOPBACK ONLY<br><small>No shell execution. Files stay in workspace.</small></div></section>
+    </aside>
+    <section class="center-column">
+      <div class="editor-panel panel">
+        <div class="tabbar"><div class="tab active"><span class="file-glyph">‹›</span><span id="active-file">Welcome</span><span id="dirty-mark"></span></div><div class="tab-actions"><button id="save-file" class="button primary small" disabled>Save</button></div></div>
+        <div id="editor-view" class="editor-view">
+          <div class="welcome" id="welcome"><div class="welcome-icon">T</div><p class="eyebrow">A LOCAL-FIRST DEVELOPMENT SPACE</p><h1>Build with your local tools.</h1><p>Open a workspace file to edit. Ask the assistant to explain code, suggest tests, or review defensive logs.</p><div class="welcome-cards"><button id="welcome-new" class="welcome-card"><b>＋ Create a file</b><span>Start a workspace file</span></button><button class="welcome-card" data-open-analyzer><b>◈ Analyze logs</b><span>Heuristic triage, no retention</span></button></div><p class="fineprint">The editor never runs code or shell commands. Save writes only inside the configured workspace.</p></div>
+          <div id="editor-wrap" class="editor-wrap hidden"><div class="editor-gutter" id="line-numbers">1</div><textarea id="code-editor" spellcheck="false" aria-label="Code editor" autocapitalize="off" autocomplete="off"></textarea></div>
+        </div>
+        <div class="bottom-bar"><span id="editor-language">PLAIN TEXT</span><span>UTF-8</span><span>LOCAL WORKSPACE</span></div>
+      </div>
+      <section id="analyzer-view" class="analyzer panel hidden"><div class="section-heading"><div><p class="eyebrow">DEFENSIVE TRIAGE</p><h2>Review log indicators</h2><p>Heuristic matches only—not a verdict. Input is processed in memory.</p></div><span class="badge">LOCAL</span></div><textarea id="log-input" placeholder="Paste authorized system or application logs for local review…"></textarea><div class="analyzer-actions"><button id="analyze-button" class="button primary">Analyze locally</button><span id="analysis-status" class="muted"></span></div><div id="analysis-results" class="results"></div></section>
+      <div class="terminal-panel panel"><div class="terminal-title"><span>OUTPUT</span><span class="muted">SAFE MODE · COMMAND EXECUTION DISABLED</span></div><div id="output-log" class="output-log">Trmux ready. No code has been executed.</div></div>
+    </section>
+    <aside class="assistant panel">
+      <div class="assistant-heading"><div class="assistant-icon">✳</div><div><b>Local Assistant</b><small id="model-status">Checking local model runtime…</small></div><button id="assistant-clear" class="icon-button" aria-label="Clear conversation">⌫</button></div>
+      <label class="model-label" for="model-select">LOCAL MODEL</label><select id="model-select"><option value="">Checking Ollama…</option></select>
+      <div id="chat-messages" class="chat-messages"><div class="chat-message assistant-message"><span class="message-avatar">✳</span><div><b>Workbench assistant</b><p>I can help explain code, suggest tests, and review defensive configurations. Prompts go only to a model already installed in your local Ollama runtime.</p></div></div></div>
+      <form id="chat-form" class="chat-form"><textarea id="chat-prompt" rows="3" maxlength="20000" placeholder="Ask about your code…" aria-label="Message local assistant"></textarea><div class="chat-controls"><span>LOCAL MODEL · NO CLOUD SIGN-IN</span><button class="send-button" type="submit" aria-label="Send message">↑</button></div></form>
+      <p class="assistant-disclaimer">AI output may be wrong. Review suggestions before applying. No agent can run tools or modify files automatically.</p>
+    </aside>
+  </main>
+  <script src="/app.js" defer></script>
+</body></html>
