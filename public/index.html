@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10131b">
+  <meta name="description" content="A local-first development workspace with a private local-model assistant.">
+  <title>Trmux — Local Workbench</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/network.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Trmux home"><span class="brand-mark">T</span><span>TRMUX <small>LOCAL WORKBENCH</small></span></a>
+    <div class="top-status"><span class="status-dot" id="runtime-dot"></span><span id="runtime-status" role="status">LOCAL · CONNECTING</span><span class="divider"></span><span id="workspace-label">WORKSPACE</span></div>
+    <div class="top-actions"><button id="refresh-files" class="icon-button" type="button" title="Refresh workspace" aria-label="Refresh workspace">↻</button><button id="new-file" class="primary-button compact" type="button">＋ New file</button></div>
+  </header>
+
+  <main class="app-grid">
+    <aside class="sidebar panel" aria-label="Workspace navigation">
+      <div class="side-head"><span>EXPLORER</span><button id="new-file-side" class="text-button" type="button">＋ FILE</button></div>
+      <div id="file-list" class="file-list"><p class="muted pad">Loading workspace…</p></div>
+      <section class="side-tools">
+        <div class="side-head"><span>TOOLS</span></div>
+        <button class="tool-link selected" type="button" data-view="editor"><span>⌘</span> Code workspace</button>
+        <button class="tool-link" type="button" data-view="analyzer"><span>◉</span> Log analyzer</button>
+        <button class="tool-link" type="button" data-view="networks"><span>⇄</span> Network drafts</button>
+      </section>
+      <div class="sidebar-footer"><span class="privacy-mark">●</span><span>Local workspace<br><small>No shell execution</small></span></div>
+    </aside>
+
+    <section class="center-column" aria-label="Workspace content">
+      <section class="editor-panel panel" aria-label="Code workspace">
+        <div class="tabbar"><div class="tab active"><span class="file-glyph">‹›</span><span id="active-file">Welcome</span><span id="dirty-mark" aria-label="Unsaved changes"></span></div><div class="tab-actions"><button id="save-file" class="primary-button compact" type="button" disabled>Save</button></div></div>
+        <div id="editor-view" class="editor-view">
+          <div class="welcome" id="welcome"><div class="welcome-icon">T</div><p class="eyebrow">A CALM SPACE TO BUILD</p><h1>Your local workbench.</h1><p>Open a file from the explorer, create a note, analyze a log, or ask your local AI assistant for help. Your workspace stays on this device.</p><div class="welcome-actions"><button id="welcome-new" class="primary-button" type="button">＋ Create a file</button><button class="secondary-button" type="button" data-open-analyzer>Analyze a log</button></div><div class="shortcut-hint"><kbd>Ctrl</kbd> <span>+</span> <kbd>S</kbd> saves the current file</div></div>
+          <div id="editor-wrap" class="editor-wrap hidden"><div class="editor-gutter" id="line-numbers">1</div><textarea id="code-editor" spellcheck="false" aria-label="Code editor" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea></div>
+        </div>
+        <div class="bottom-bar"><span id="editor-language">PLAIN TEXT</span><span>UTF-8</span><span>LOCAL WORKSPACE</span></div>
+      </section>
+
+      <section id="analyzer-view" class="analyzer panel hidden" aria-label="Defensive log analyzer">
+        <div class="section-heading"><div><p class="eyebrow">DEFENSIVE TRIAGE</p><h2>Review log indicators</h2><p>Local heuristic matches only. Findings are clues for human review, not proof of compromise.</p></div></div>
+        <label class="field-label" for="log-input">Paste log text</label><textarea id="log-input" class="log-input" maxlength="100000" placeholder="Paste a log excerpt here…" spellcheck="false"></textarea>
+        <div class="button-row"><button id="analyze-button" class="primary-button" type="button">Analyze locally</button><span id="analysis-status" class="muted" role="status">Input is processed in memory and not retained.</span></div>
+        <div id="analysis-results" class="analysis-results" aria-live="polite"></div>
+      </section>
+
+      <section id="network-view" class="network-view panel hidden" aria-label="VPN and proxy profile drafts">
+        <div class="section-heading"><div><p class="eyebrow">NETWORK CONFIGURATION</p><h2>VPN &amp; proxy drafts</h2><p>Organize endpoint notes for networks you own or are authorized to use.</p></div></div>
+        <div class="network-warning"><b>Draft manager—not a VPN client</b><p>This web app does not connect, tunnel, route, scan, rotate proxies, or change Android/desktop network settings. Drafts are stored only in this browser.</p></div>
+        <div class="network-layout">
+          <div class="profile-list-panel"><div class="side-head"><span>SAVED DRAFTS</span><button id="new-profile" class="text-button" type="button">＋ PROFILE</button></div><div id="profile-list" class="profile-list"><p class="muted pad">No network profiles yet.</p></div></div>
+          <form id="profile-form" class="profile-form"><input id="profile-id" type="hidden"><label>Profile name<input id="profile-name" maxlength="80" required placeholder="Home VPN"></label><label>Type<select id="profile-type"><option value="wireguard">WireGuard</option><option value="openvpn">OpenVPN</option><option value="socks5">SOCKS5</option><option value="http-connect">HTTP CONNECT</option></select></label><div class="form-row"><label>Host or IP<input id="profile-host" maxlength="253" required placeholder="vpn.example.net"></label><label>Port<input id="profile-port" type="number" min="1" max="65535" required placeholder="51820"></label></div><label>Notes (optional)<textarea id="profile-notes" maxlength="300" rows="3" placeholder="Reminder only — never put keys or passwords here"></textarea></label><p id="profile-status" class="muted" role="status">New draft. No connection will be made.</p><div class="button-row"><button class="primary-button" type="submit">Save draft</button><button id="clear-profile" class="secondary-button" type="button">Clear</button><button id="delete-profile" class="danger-button" type="button" disabled>Delete</button></div><div class="button-row export-row"><button id="export-template" class="secondary-button" type="button" disabled>Export template</button><button id="export-profiles" class="secondary-button" type="button">Export drafts</button><label class="secondary-button file-picker">Import drafts<input id="profile-import-file" type="file" accept="application/json,.json"></label></div></form>
+        </div>
+      </section>
+      <section class="terminal-panel panel" aria-label="Application messages"><div class="terminal-title"><span>ACTIVITY</span><span class="muted">LOCAL · NO COMMAND EXECUTION</span></div><div id="output-log" class="output-log" role="status" aria-live="polite">Ready. Choose a file or a tool to begin.</div></section>
+    </section>
+
+    <aside class="assistant panel" aria-label="Local AI assistant">
+      <div class="assistant-heading"><div class="assistant-icon">✳</div><div><b>Local Assistant</b><small id="model-status" role="status">Checking local model runtime…</small></div><button id="assistant-clear" class="icon-button small-icon" type="button" title="Clear conversation" aria-label="Clear conversation">⌫</button></div>
+      <div class="model-picker"><label class="model-label" for="model-select">LOCAL MODEL</label><button id="refresh-models" class="text-button" type="button">Refresh</button></div><select id="model-select" aria-label="Choose an installed local model"><option value="">Checking Ollama…</option></select>
+      <label class="context-toggle"><input id="include-context" type="checkbox"><span>Include current open file as context</span></label>
+      <div id="chat-messages" class="chat-messages" aria-live="polite"><div class="chat-message assistant-message"><span class="message-avatar">✳</span><div><b>Workbench assistant</b><p>Ask me to explain code, suggest improvements, or help interpret a log. Chat runs through a model installed in your local Ollama instance; nothing is sent to a hosted AI service.</p></div></div></div>
+      <form id="chat-form" class="chat-form"><label class="sr-only" for="chat-prompt">Message the local assistant</label><textarea id="chat-prompt" rows="3" maxlength="20000" placeholder="Ask about your code…" aria-label="Message local assistant"></textarea><div class="chat-compose"><span><kbd>Ctrl</kbd> <span>+</span> <kbd>Enter</kbd> to send</span><button id="send-chat" class="primary-button compact" type="submit">Send ↑</button></div></form>
+      <p class="assistant-disclaimer">Local model output can be wrong. Review suggestions before applying. The assistant does not run commands or edit files.</p>
+    </aside>
+  </main>
+  <script src="/app.js" defer></script><script src="/network.js" defer></script>
+</body>
+</html>
