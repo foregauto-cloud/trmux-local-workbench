@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
 import android.widget.Button;
@@ -55,28 +56,24 @@ public final class WorkbenchActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(16), dp(12), dp(16), dp(12));
         root.setBackgroundColor(0xff10131b);
-
         TextView title = new TextView(this);
         title.setText("TRMUX · NATIVE WORKBENCH");
         title.setTextColor(0xff94f2c0);
         title.setTextSize(20);
         title.setGravity(Gravity.CENTER_VERTICAL);
         root.addView(title, new LinearLayout.LayoutParams(-1, dp(48)));
-
         LinearLayout nav = new LinearLayout(this);
         addNavButton(nav, "Editor", this::showEditor);
         addNavButton(nav, "Log review", this::showLogReview);
         addNavButton(nav, "Local AI", this::showChat);
         addNavButton(nav, "VPN", () -> startActivity(new Intent(this, MainActivity.class)));
         root.addView(nav);
-
         ScrollView scroll = new ScrollView(this);
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(0, dp(12), 0, dp(12));
         scroll.addView(content);
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
-
         status = new TextView(this);
         status.setTextColor(0xffb7c1d1);
         status.setTextSize(12);
@@ -98,8 +95,8 @@ public final class WorkbenchActivity extends Activity {
         content.removeAllViews();
         heading("Local file editor", "Open or save text files using Android's document picker. No files are uploaded.");
         LinearLayout actions = new LinearLayout(this);
-        addNavButton(actions, "Open file", () -> openFile());
-        addNavButton(actions, "Save as", () -> saveFile());
+        addNavButton(actions, "Open file", this::openFile);
+        addNavButton(actions, "Save as", this::saveFile);
         content.addView(actions);
         editor = new EditText(this);
         editor.setGravity(Gravity.TOP | Gravity.START);
@@ -107,6 +104,7 @@ public final class WorkbenchActivity extends Activity {
         editor.setTypeface(android.graphics.Typeface.MONOSPACE);
         editor.setMinLines(14);
         editor.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        editor.setFilters(new InputFilter[]{new InputFilter.LengthFilter(MAX_FILE_BYTES)});
         editor.setHint("Open a text file, or start typing…");
         content.addView(editor, new LinearLayout.LayoutParams(-1, dp(360)));
         setStatus("Editing " + currentFileName + " · local only");
@@ -168,6 +166,7 @@ public final class WorkbenchActivity extends Activity {
         logInput.setGravity(Gravity.TOP | Gravity.START);
         logInput.setMinLines(10);
         logInput.setMaxLines(18);
+        logInput.setFilters(new InputFilter[]{new InputFilter.LengthFilter(100000)});
         logInput.setTextSize(12);
         logInput.setTypeface(android.graphics.Typeface.MONOSPACE);
         logInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
@@ -220,7 +219,7 @@ public final class WorkbenchActivity extends Activity {
         chatInput = new EditText(this);
         chatInput.setGravity(Gravity.TOP | Gravity.START);
         chatInput.setMinLines(3);
-        chatInput.setMaxLength(4000);
+        chatInput.setFilters(new InputFilter[]{new InputFilter.LengthFilter(4000)});
         chatInput.setHint("Ask a question…");
         content.addView(chatInput, new LinearLayout.LayoutParams(-1, dp(130)));
         Button send = new Button(this);
