@@ -1,28 +1,27 @@
 # Trmux Local Workbench
 
-The public repository includes a local-first browser workspace plus an experimental native Android WireGuard controller under `android/`.
+The public repository includes a local-first browser workspace plus an experimental native Android WireGuard client under `android/`.
 
-## Build the Android APK in Termux
+## Native Android WireGuard client
 
-The Android app supports a user-confirmed APK update flow. Android does not allow an app to hot-patch its running code or silently replace itself. Build a new APK with the **same signing key** and a higher `versionCode`, install it through Android's package installer, and Android updates the installed app while preserving app data. The process restarts as part of installation. Disconnect the VPN first.
+The Android app imports one user-selected WireGuard configuration, validates it, encrypts it at rest with Android Keystore-backed AES-GCM, and requests Android VPN consent before activating a tunnel. It displays the profile's interface addresses, DNS, peer endpoints, and each peer's `AllowedIPs`, then reports live RX/TX counters while the app is open. Secret keys are not included in the summary.
 
-To update an app built and installed from this same Termux environment, pull the latest code and build with the helper:
+A WireGuard configuration may contain multiple peers, but this client does not provision peer devices, discover peers, generate a mesh, or configure gateway forwarding. For a real private mesh, configure each authorized node's own keys and endpoint, reciprocal peer entries, non-overlapping overlay addresses and `AllowedIPs`, plus IP forwarding/firewall rules on any gateway. Those operations are device- and network-administrator responsibilities. Check routes and DNS carefully before connecting. Disconnect remains user-controlled. No proxy client, endpoint rotation, relay mesh, stealth, or firmware modification is implemented. This is an experimental client, not an audited security product.
+
+### Build APK in Termux
+
+The existing Termux checkout can be updated and built using the native AAPT2 helper:
 
 ```sh
 cd ~/trmux-local-workbench
 git pull --ff-only
 ./android/build-termux.sh
-```
-
-Keep the same Termux user and `~/.android/debug.keystore`; losing/replacing that debug key means Android will reject the update signature. Then copy the APK to Downloads and open it to upgrade manually:
-
-```sh
 cp android/app/build/outputs/apk/debug/app-debug.apk "$HOME/storage/downloads/"
 ```
 
-Alternatively, use **Install app update from APK** in Trmux, select the built APK, and confirm the Android installer prompt. Android may ask to allow this app to install unknown apps. The installer validates package ID, signature, and version; updates must use package `org.trmux.app`, the same signing certificate, and a higher version code. Never install an APK from an untrusted source.
+Open the APK from Downloads and confirm Android's installer. This app version increases the package version code to 2. Updates require the same package ID (`org.trmux.app`), signing key, and a higher version code; Android's installer controls the update and restarts the app. Preserve the Termux user's `~/.android/debug.keystore` for local debug updates. Do not mix APKs signed with different keys.
 
-Termux build prerequisites (once): OpenJDK 21, Gradle, native Termux `aapt2`, and Android SDK platform 35/build-tools 34.0.0. If needed:
+Prerequisites are OpenJDK 21, Gradle, native Termux `aapt2`, and Android SDK platform 35/build-tools 34.0.0. If needed:
 
 ```sh
 pkg install openjdk-21 gradle aapt2
@@ -36,13 +35,7 @@ chmod +x android/build-termux.sh
 ./android/build-termux.sh
 ```
 
-## Native Android VPN app (WireGuard)
-
-The `android/` subproject imports a user-selected WireGuard configuration, parses it with the official WireGuard tunnel library, encrypts configuration at rest using Android Keystore-backed AES-GCM, and requests Android's explicit `VpnService.prepare()` consent before connecting. Disconnect is user-controlled. This is an experimental minimal controller, not an audited VPN product. Test connect/disconnect and permission-denial behavior on a spare device before using sensitive traffic.
-
-Current native support is **WireGuard only**. OpenVPN/SOCKS5/HTTP CONNECT profiles in the browser app are drafts, not active connections. No proxy chaining, endpoint rotation, relay mesh, stealth, or automatic traffic redirection is included. VPN routes and DNS come from the imported WireGuard configuration; inspect them with the provider before approving a connection. An app cannot control arbitrary firmware or bypass Android's system permissions.
-
-## Web workspace and Termux
+## Browser workbench and Termux
 
 Requires Node.js 18+:
 
@@ -52,4 +45,4 @@ cd trmux-local-workbench
 npm start
 ```
 
-Open http://127.0.0.1:3000. No account is needed for editor, local log triage, or browser-only profile drafts. The browser app cannot activate a VPN. The server binds to loopback, does not execute code or shell commands, and its optional assistant calls only a preinstalled model on local Ollama.
+Open http://127.0.0.1:3000. The browser workspace is loopback-only, does not execute code or shell commands, and its VPN/proxy screen stores draft details only; it cannot activate a VPN. Optional assistant requests go only to a preinstalled model on local Ollama. This project cannot control device firmware or bypass Android permissions.
