@@ -14,18 +14,26 @@
     <aside class="sidebar panel">
       <div class="side-head"><span>EXPLORER</span><button id="new-file" class="text-button">＋ FILE</button></div>
       <div id="file-list" class="file-list"><p class="muted pad">Loading workspace…</p></div>
-      <section class="side-tools"><div class="side-head"><span>DEFENSIVE TOOLS</span></div><button class="tool-link selected" data-view="editor">⌘　Code workspace</button><button class="tool-link" data-view="analyzer">◈　Log triage</button><div class="safety-note"><span>●</span> LOOPBACK ONLY<br><small>No shell execution. Files stay in workspace.</small></div></section>
+      <section class="side-tools"><div class="side-head"><span>WORKBENCH</span></div><button class="tool-link selected" data-view="editor">⌘　Code workspace</button><button class="tool-link" data-view="analyzer">◈　Log triage</button><button id="network-config-button" class="tool-link">⇄　VPN / proxy profiles</button><div class="safety-note"><span>●</span> LOOPBACK ONLY<br><small>No shell execution. Network profiles are drafts only.</small></div></section>
     </aside>
     <section class="center-column">
       <div class="editor-panel panel">
         <div class="tabbar"><div class="tab active"><span class="file-glyph">‹›</span><span id="active-file">Welcome</span><span id="dirty-mark"></span></div><div class="tab-actions"><button id="save-file" class="button primary small" disabled>Save</button></div></div>
         <div id="editor-view" class="editor-view">
-          <div class="welcome" id="welcome"><div class="welcome-icon">T</div><p class="eyebrow">A LOCAL-FIRST DEVELOPMENT SPACE</p><h1>Build with your local tools.</h1><p>Open a workspace file to edit. Ask the assistant to explain code, suggest tests, or review defensive logs.</p><div class="welcome-cards"><button id="welcome-new" class="welcome-card"><b>＋ Create a file</b><span>Start a workspace file</span></button><button class="welcome-card" data-open-analyzer><b>◈ Analyze logs</b><span>Heuristic triage, no retention</span></button></div><p class="fineprint">The editor never runs code or shell commands. Save writes only inside the configured workspace.</p></div>
+          <div class="welcome" id="welcome"><div class="welcome-icon">T</div><p class="eyebrow">A LOCAL-FIRST DEVELOPMENT SPACE</p><h1>Build with your local tools.</h1><p>Open a workspace file to edit. Ask the assistant to explain code, suggest tests, or review defensive logs.</p><div class="welcome-cards"><button id="welcome-new" class="welcome-card"><b>＋ Create a file</b><span>Start a workspace file</span></button><button class="welcome-card" data-open-analyzer><b>◈ Analyze logs</b><span>Heuristic triage, no retention</span></button><button class="welcome-card" data-open-networks><b>⇄ Network profiles</b><span>Prepare a local configuration draft</span></button></div><p class="fineprint">The editor never runs code or shell commands. Save writes only inside the configured workspace.</p></div>
           <div id="editor-wrap" class="editor-wrap hidden"><div class="editor-gutter" id="line-numbers">1</div><textarea id="code-editor" spellcheck="false" aria-label="Code editor" autocapitalize="off" autocomplete="off"></textarea></div>
         </div>
         <div class="bottom-bar"><span id="editor-language">PLAIN TEXT</span><span>UTF-8</span><span>LOCAL WORKSPACE</span></div>
       </div>
       <section id="analyzer-view" class="analyzer panel hidden"><div class="section-heading"><div><p class="eyebrow">DEFENSIVE TRIAGE</p><h2>Review log indicators</h2><p>Heuristic matches only—not a verdict. Input is processed in memory.</p></div><span class="badge">LOCAL</span></div><textarea id="log-input" placeholder="Paste authorized system or application logs for local review…"></textarea><div class="analyzer-actions"><button id="analyze-button" class="button primary">Analyze locally</button><span id="analysis-status" class="muted"></span></div><div id="analysis-results" class="results"></div></section>
+      <section id="network-view" class="network-view panel hidden" aria-label="VPN and proxy profile manager">
+        <div class="section-heading"><div><p class="eyebrow">NETWORK CONFIGURATION</p><h2>VPN &amp; proxy profile drafts</h2><p>Organize endpoint details for networks you own or are authorized to use.</p></div><span class="badge">LOCAL ONLY</span></div>
+        <div class="network-warning"><b>Configuration manager only</b><p>This browser app does not connect, tunnel, route, scan, rotate proxies, or change Android/desktop network settings. Profiles stay in this browser’s local storage; credentials and private keys are deliberately not collected. To activate a VPN, use its trusted native client and enter details there.</p></div>
+        <div class="network-layout">
+          <div class="profile-list-panel"><div class="side-head"><span>SAVED DRAFTS</span><button id="new-profile" class="text-button">＋ PROFILE</button></div><div id="profile-list" class="profile-list"><p class="muted pad">No network profiles yet.</p></div><div class="profile-import"><label for="profile-import-file" class="button">Import JSON</label><input id="profile-import-file" type="file" accept="application/json,.json" hidden><button id="export-profiles" class="button">Export JSON</button></div></div>
+          <form id="profile-form" class="profile-form"><input id="profile-id" type="hidden"><label>Profile name<input id="profile-name" maxlength="80" required placeholder="Home VPN"></label><label>Configuration type<select id="profile-type"><option value="wireguard">WireGuard endpoint</option><option value="openvpn">OpenVPN endpoint</option><option value="socks5">SOCKS5 proxy</option><option value="http-connect">HTTP CONNECT proxy</option></select></label><div class="form-row"><label>Server / hostname<input id="profile-host" maxlength="253" required placeholder="vpn.example.net"></label><label>Port<input id="profile-port" type="number" min="1" max="65535" required placeholder="51820"></label></div><label>Purpose / notes<textarea id="profile-notes" maxlength="500" rows="3" placeholder="Owner, intended use, setup notes (no secrets)"></textarea></label><div class="profile-actions"><button class="button primary" type="submit">Save draft locally</button><button class="button" id="clear-profile" type="button">Clear form</button><button class="button danger-button" id="delete-profile" type="button" disabled>Delete</button></div><p id="profile-status" class="muted" aria-live="polite"></p></form>
+        </div>
+      </section>
       <div class="terminal-panel panel"><div class="terminal-title"><span>OUTPUT</span><span class="muted">SAFE MODE · COMMAND EXECUTION DISABLED</span></div><div id="output-log" class="output-log">Trmux ready. No code has been executed.</div></div>
     </section>
     <aside class="assistant panel">
@@ -36,5 +44,5 @@
       <p class="assistant-disclaimer">AI output may be wrong. Review suggestions before applying. No agent can run tools or modify files automatically.</p>
     </aside>
   </main>
-  <script src="/app.js" defer></script>
+  <script src="/app.js" defer></script><script src="/network.js" defer></script>
 </body></html>
