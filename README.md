@@ -1,10 +1,23 @@
 # Trmux Local Workbench
 
-A public, dependency-light, local-first coding workspace and defensive assistant for desktop browsers and Termux. It is an early scaffold, not an operating system, VS Code replacement, or certified security product.
+The public repository includes a local-first browser workspace plus an experimental native Android WireGuard controller under `android/`.
 
-## Quick start
+## Native Android VPN app (WireGuard)
 
-Requires Node.js 18+.
+The `android/` subproject is a native Android application, separate from the Termux web app. It imports a user-selected WireGuard configuration, parses it with the official WireGuard tunnel library, encrypts the configuration at rest using Android Keystore-backed AES-GCM, and requests Android's explicit `VpnService.prepare()` consent before connecting. Disconnect is user-controlled. Build with Android Studio or a compatible Gradle installation and Android SDK 35:
+
+```sh
+cd android
+gradle assembleDebug
+```
+
+Install the resulting `android/app/build/outputs/apk/debug/app-debug.apk` on a test device. Review the WireGuard library's license and upstream documentation before distributing. This initial Android project is an experimental minimal controller, not an audited VPN product. Test connect/disconnect and permission-denial behavior on a spare device before using it for sensitive traffic.
+
+Current native support is **WireGuard only**. The web configurator's OpenVPN/SOCKS5/HTTP CONNECT profiles remain drafts and are not active connections. OpenVPN or system-wide proxy support needs separate native implementations. No proxy chaining, endpoint rotation, relay mesh, stealth, or automatic traffic redirection is included. VPN routes and DNS are taken from the imported WireGuard config; inspect them with the provider before approving connection. Android's system VPN consent is required.
+
+## Web workspace and Termux
+
+Requires Node.js 18+:
 
 ```sh
 git clone https://github.com/foregauto-cloud/trmux-local-workbench.git
@@ -12,19 +25,6 @@ cd trmux-local-workbench
 npm start
 ```
 
-Open http://127.0.0.1:3000. No account or API key is needed for editor, profile drafts, or log triage. The default workspace is `./workspace`; set `TRMUX_WORKSPACE=/absolute/path` to change it. The server binds to loopback only.
+Open http://127.0.0.1:3000. No account is needed for editor, local log triage, or browser-only profile drafts. Termux: `pkg install nodejs git`, clone, `cd` into the repository, and run `npm start`; open the loopback URL in an Android browser. The browser app cannot activate a VPN.
 
-## VPN / proxy profile configurator
-
-The **VPN / proxy profiles** screen has been wired into the main navigation and styled. It saves non-secret endpoint drafts for WireGuard, OpenVPN, SOCKS5, and HTTP CONNECT in this browser's local storage; import/export is JSON. It can also export a *draft template* for a native client. The template is incomplete and contains placeholders; it is not a working VPN profile. No passwords, keys, or certificates are collected or exported.
-
-This is not a VPN/proxy client: it does not connect, tunnel, route traffic, rotate endpoints, change system settings, or establish a mesh. Use the appropriate trusted native client to configure and activate a VPN. Browser apps cannot grant themselves Android VpnService or desktop network privileges. A SOCKS/HTTP endpoint saved here does not automatically proxy Trmux or other apps.
-
-## Workspace and assistant
-
-- Browser editor and file explorer read/write only beneath the configured workspace. Hidden paths, parent traversal, symlinks, excluded folders, and files over 1 MiB are rejected.
-- The output panel is informational: no shell or code execution is implemented.
-- Optional assistant connects only to a model already installed in Ollama at `127.0.0.1:11434`; no cloud fallback or sign-in.
-- Log triage uses simple heuristics in memory. Findings are indicators, not a verdict; submitted log text is not retained.
-
-Termux installs Node.js with `pkg install nodejs git`, clones the public repository, then runs `npm start`; open the loopback URL in an Android browser. This is a Termux-hosted web app, not an APK. Do not expose it beyond loopback.
+The server is loopback-only, does not execute code or shell commands, and its optional assistant calls only a preinstalled model on local Ollama. This repository is a prototype, not an operating system, VS Code replacement, or certified security product.
