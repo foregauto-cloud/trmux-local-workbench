@@ -10,8 +10,6 @@ A WireGuard configuration may contain multiple peers, but this client does not p
 
 ### Build APK in Termux
 
-The existing Termux checkout can be updated and built using the native AAPT2 helper:
-
 ```sh
 cd ~/trmux-local-workbench
 git pull --ff-only
@@ -19,21 +17,7 @@ git pull --ff-only
 cp android/app/build/outputs/apk/debug/app-debug.apk "$HOME/storage/downloads/"
 ```
 
-Open the APK from Downloads and confirm Android's installer. This app version increases the package version code to 2. Updates require the same package ID (`org.trmux.app`), signing key, and a higher version code; Android's installer controls the update and restarts the app. Preserve the Termux user's `~/.android/debug.keystore` for local debug updates. Do not mix APKs signed with different keys.
-
-Prerequisites are OpenJDK 21, Gradle, native Termux `aapt2`, and Android SDK platform 35/build-tools 34.0.0. If needed:
-
-```sh
-pkg install openjdk-21 gradle aapt2
-export JAVA_HOME="$PREFIX/lib/jvm/java-21-openjdk"
-export ANDROID_HOME="$HOME/android-sdk"
-export ANDROID_SDK_ROOT="$ANDROID_HOME"
-"$ANDROID_HOME/cmdline-tools/latest/cmdline-tools/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses
-"$ANDROID_HOME/cmdline-tools/latest/cmdline-tools/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
-  "platforms;android-35" "build-tools;34.0.0" "platform-tools"
-chmod +x android/build-termux.sh
-./android/build-termux.sh
-```
+Open the APK from Downloads and confirm Android's installer. This app is version 0.3.0 (version code 3); updates require the same package ID (`org.trmux.app`), signing key, and a higher version code. Preserve the Termux user's `~/.android/debug.keystore` for local debug updates. Do not mix APKs signed with different keys. Android displays the VPN permission result separately; this build handles approval even when the system returns no result Intent.
 
 ## Browser workbench and Termux
 

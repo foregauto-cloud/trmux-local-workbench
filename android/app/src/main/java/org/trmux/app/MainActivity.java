@@ -18,7 +18,6 @@ import com.wireguard.android.backend.GoBackend;
 import com.wireguard.android.backend.Statistics;
 import com.wireguard.android.backend.Tunnel;
 import com.wireguard.config.Config;
-import com.wireguard.config.InetNetwork;
 import com.wireguard.config.Peer;
 
 import java.io.ByteArrayInputStream;
@@ -39,9 +38,10 @@ public final class MainActivity extends Activity {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Runnable statusPoll = new Runnable() {
         @Override public void run() {
-            worker.execute(() -> refreshState());
+            worker.execute(this::refreshStatusOnWorker);
             mainHandler.postDelayed(this, 3000);
         }
+        private void refreshStatusOnWorker() { refreshState(); }
     };
     private SecureProfileStore profileStore;
     private Backend backend;
@@ -195,6 +195,11 @@ public final class MainActivity extends Activity {
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_VPN_PERMISSION) {
+            if (resultCode == RESULT_OK) connect();
+            else showStatus("Android VPN permission denied; tunnel remains disconnected.");
+            return;
+        }
         if (requestCode == REQUEST_UNKNOWN_APP_SOURCES) {
             if (getPackageManager().canRequestPackageInstalls()) chooseUpdateApk();
             else showStatus("Install permission was not enabled; no update was installed.");
@@ -211,9 +216,6 @@ public final class MainActivity extends Activity {
                 showConfigSummary(config);
                 showStatus("Valid WireGuard configuration saved encrypted on device.");
             } catch (Exception e) { showStatus("Import failed: " + safeMessage(e)); }
-        } else if (requestCode == REQUEST_VPN_PERMISSION) {
-            if (resultCode == RESULT_OK) connect();
-            else showStatus("Android VPN permission denied; tunnel remains disconnected.");
         } else if (requestCode == REQUEST_UPDATE_APK) {
             Uri apkUri = data.getData();
             worker.execute(() -> {
@@ -312,7 +314,7 @@ public final class MainActivity extends Activity {
         appendList(text, config.getInterface().getAddresses());
         text.append("\nDNS: ");
         appendList(text, config.getInterface().getDnsServers());
-        text.append("\nPeers (" ).append(config.getPeers().size()).append("):");
+        text.append("\nPeers (").append(config.getPeers().size()).append("):");
         int index = 0;
         for (Peer peer : config.getPeers()) {
             text.append("\n  ").append(++index).append(" · endpoint ")
